@@ -15,9 +15,10 @@ Current CEP panel UI inside Premiere Pro, using the refreshed bridge controls an
 This repository is currently validated for:
 
 - macOS
+- Windows 10/11
 - Adobe Premiere Pro 2020+ (actively used and tested on Premiere Pro 26.0)
 - Node.js 18+
-- the included macOS installer path for Claude Desktop
+- the included macOS and Windows installer paths for Claude Desktop
 - manual MCP registration for Codex, Claude Code, and similar MCP clients
 
 Current local validation as of March 4, 2026:
@@ -53,7 +54,9 @@ High-level workflow tools included:
 
 `assemble_product_spot` and `build_brand_spot_from_mogrt_and_assets` now support an optional `clipPlan` argument so an LLM can direct per-clip timing, track placement, transitions, motion, trims, effects, and color adjustments instead of relying on fixed template defaults.
 
-## Fastest Install (macOS)
+## Fastest Install
+
+### macOS
 
 ```bash
 git clone https://github.com/hetpatel-11/Adobe_Premiere_Pro_MCP.git
@@ -61,13 +64,21 @@ cd Adobe_Premiere_Pro_MCP
 npm run setup:mac
 ```
 
-That installer will:
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/hetpatel-11/Adobe_Premiere_Pro_MCP.git
+cd Adobe_Premiere_Pro_MCP
+npm run setup:win
+```
+
+These installers will:
 
 - install dependencies
 - build `dist/index.js`
 - enable Adobe CEP debug mode
 - install the `MCP Bridge (CEP)` extension
-- create `/tmp/premiere-mcp-bridge`
+- create a temporary bridge directory (`/tmp/premiere-mcp-bridge` on macOS, `$env:TEMP\premiere-mcp-bridge` on Windows)
 - add the `premiere-pro` MCP entry to Claude Desktop
 
 Important:
@@ -75,16 +86,16 @@ Important:
 - the supported UI bridge in this repo is the `MCP Bridge (CEP)` extension
 - the installer enables Adobe **CEP** debug mode automatically
 - if Premiere does not expose the extension cleanly on your machine, enable **UXP Plugins > Enable developer mode** in Premiere Pro preferences before opening the bridge panel
-- `npm run setup:mac` is the easiest path for Claude Desktop on macOS because it updates Claude Desktop config automatically
+- `npm run setup:mac` and `npm run setup:win` are the easiest paths for Claude Desktop because they update the Claude Desktop config automatically.
 
 After the installer finishes:
 
 1. Quit and reopen your MCP client if it reads config on startup. If you used the installer, that means Claude Desktop.
 2. Quit and reopen Premiere Pro.
-3. In Premiere Pro on macOS, open `Premiere Pro > Preferences > Plugins` and enable **UXP Plugins > Enable developer mode**.
+3. In Premiere Pro, open `Premiere Pro > Preferences > Plugins` (macOS) or `Edit > Preferences > Plugins` (Windows) and enable **UXP Plugins > Enable developer mode**.
 4. Restart Premiere Pro if the setting was changed.
 5. Open `Window > Extensions > MCP Bridge (CEP)`.
-6. Set `Temp Directory` to `/tmp/premiere-mcp-bridge`.
+6. Set `Temp Directory` to `/tmp/premiere-mcp-bridge` (macOS) or `%TEMP%\premiere-mcp-bridge` (Windows).
 7. Click `Save Configuration`.
 8. Click `Start Bridge`.
 9. Click `Test Connection`.
@@ -105,7 +116,13 @@ On macOS, use:
 npm run setup:mac
 ```
 
-That is the only path in this repo that automatically writes the MCP entry for you.
+On Windows, use (in PowerShell):
+
+```powershell
+npm run setup:win
+```
+
+These are the only paths in this repo that automatically write the MCP entry for you.
 
 ### Codex
 
@@ -119,7 +136,7 @@ npm run build
 Then add the MCP server on a single line:
 
 ```bash
-codex mcp add premiere_pro --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+codex mcp add premiere_pro --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge (or %TEMP%\premiere-mcp-bridge on Windows) -- node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
 ```
 
 ### Claude Code
@@ -135,7 +152,7 @@ Then register the MCP server in Claude Code using the same built `dist/index.js`
 
 ```text
 command: node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
-env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge
+env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge (or %TEMP%\premiere-mcp-bridge on Windows)
 ```
 
 If you use a local MCP config file instead of a helper command, point it at the same `dist/index.js` and set the same env var.
@@ -146,7 +163,7 @@ Use the same manual registration approach as Claude Code:
 
 ```text
 command: node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
-env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge
+env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge (or %TEMP%\premiere-mcp-bridge on Windows)
 ```
 
 Important for all manual client setups:
@@ -154,14 +171,18 @@ Important for all manual client setups:
 - keep the command on one line
 - use the real absolute path to `dist/index.js`
 - restart the client after adding or updating the MCP entry
-- start the CEP bridge inside Premiere and confirm the temp directory is exactly `/tmp/premiere-mcp-bridge`
+- start the CEP bridge inside Premiere and confirm the temp directory is exactly `/tmp/premiere-mcp-bridge` (macOS) or `%TEMP%\premiere-mcp-bridge` (Windows)
 
 ## Verify the Install
 
 Run the built-in checks:
 
 ```bash
+# macOS
 npm run setup:doctor
+
+# Windows (PowerShell)
+npm run setup:doctor:win
 ```
 
 That validates:
@@ -234,7 +255,7 @@ If the tools are visible but calls fail:
 
 1. Confirm Premiere Pro is open with a project loaded.
 2. Open `Window > Extensions > MCP Bridge (CEP)`.
-3. Confirm the temp directory is exactly `/tmp/premiere-mcp-bridge`.
+3. Confirm the temp directory is exactly `/tmp/premiere-mcp-bridge` (macOS) or `%TEMP%\premiere-mcp-bridge` (Windows).
 4. Click `Start Bridge`.
 5. If you updated the bridge code, right-click the panel and choose `Reload`.
 6. Retry the command.
@@ -242,7 +263,7 @@ If the tools are visible but calls fail:
 If the MCP client cannot find the server:
 
 1. Verify the absolute path to `dist/index.js`.
-2. Verify `PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge`.
+2. Verify `PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge (or %TEMP%\premiere-mcp-bridge on Windows)`.
 3. Restart the MCP client after changing config.
 4. Run `npm run setup:doctor`.
 
